@@ -13,7 +13,7 @@ def whats_missing(array):
             miss_ints.append(i)
 
 
-    print(f"You're missing {miss_ints}.")
+    print(f"You're missing {miss_int}.")
 
 
 whats_missing(integers)
