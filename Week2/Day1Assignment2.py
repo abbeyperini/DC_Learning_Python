@@ -7,27 +7,30 @@ def is_number(input_num):
     except ValueError:
         print("Whoops! That is not a valid number.")
 
-class shopping_list():
+class Shopping_list():
     def __init__(self, title, address):
         self.title = title
         self.address = address
         self.groceries = []
+    
+    def add_items(self, grocery_item):
+        grocery_item.list_index = self
 
-    def add_groceries(self):
-        item_title = input("What do you need to buy? ")
-        item_cost = input("How much will it cost? ")
-        item_quantity = input("How many do you need? ")
+        if grocery_item not in self.groceries:
+            self.groceries.append(grocery_item)
 
-        item_title = {"title": item_title, "cost": item_cost, "quantity": item_quantity}
-        self.groceries.append(item_title)
-        
-        menu()
+class Grocery_item():
+    def __init__(self, title, cost, quantity, list_index):
+        self.title = title
+        self.cost = cost
+        self.quantity = quantity
+        self.list_index = list_index
 
 def create_shopping_list():
     title = input("What would you like to name your list? ")
     address = input("Where will you be shopping? ")
 
-    title = shopping_list(title, address)
+    title = Shopping_list(title, address)
     lists.append(title)
     
     menu()
@@ -38,27 +41,39 @@ def view_all():
         print(f"{l} - {lists[l].title} - {lists[l].address}")
         
         for i in range(0, len(lists[l].groceries)):
-            print(f"     {lists[l].groceries[i]['title']}")
+            print(f"     {lists[l].groceries[i].title}")
 
     menu()
 
 def menu_add_groceries():
+    adding = True
+    adding_input_no = ["N", "n", "no", "No"]
+    
     print("-----List Indices-----")
     for l in range(0, len(lists)):
         print(f"{l} - {lists[l].title}")
+
+    while adding == True:
+        print("Would you like to add a new item? Y/N")
+        adding_input = input("> ")
         
-    index_str = input("Enter the index number of the list you'd like to add. ")
-    
-    if is_number(index_str):
-        index = int(index_str)
-        if index < (len(lists)):
-            lists[index].add_groceries()
-        else:
-            print("Not a valid index number.")
+        if adding_input in adding_input_no:
+            adding = False
             menu()
-    else:
-        print("Not a valid number.")
-        menu()
+
+        else:
+            index_str = input("Enter the index number of the list you'd like to add an item to. ")
+    
+            if is_number(index_str):
+                index = int(index_str)
+                if index < (len(lists)):
+                    list_index = lists[index]
+                    item_title = input("What do you need to buy? ")
+                    item_cost = input("How much will it cost? ")
+                    item_quantity = input("How many do you need? ")
+
+                item_title = Grocery_item(item_title, item_cost, item_quantity, list_index)
+                lists[index].add_items(item_title)
 
 def menu():
     print("""
