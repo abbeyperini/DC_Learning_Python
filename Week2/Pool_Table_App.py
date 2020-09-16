@@ -2,8 +2,6 @@
 # MORE HARD MODE - Write Unit Tests for your application
 # MORE HARD MODE - different cost for students, teachers, and coupons
 
-# Current error: start_hours = int(start_list[0]) * 60 ValueError: invalid literal for int() with base 10: '' - works in a separate file, something about how it's being called?
-
 from datetime import datetime, date, time
 
 class Table():
