@@ -1,6 +1,5 @@
 # a pool table management app which will manage the pool tables in University of Houston Center Games Room - one user, the admin. 
 # To do:
-    # MORE HARD MODE - Write Unit Tests for your application
     # Write to JSON
     # input validation
 
