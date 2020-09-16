@@ -1,8 +1,11 @@
 # a pool table management app which will manage the pool tables in University of Houston Center Games Room - one user, the admin. 
-# MORE HARD MODE - Write Unit Tests for your application
-# MORE HARD MODE - different cost for students, teachers, and coupons
+# To do:
+    # MORE HARD MODE - Write Unit Tests for your application
+    # Write to JSON
+    # input validation
 
 from datetime import datetime, date, time
+import math
 
 class Table():
     def __init__(self):
@@ -28,13 +31,6 @@ class Table():
         total_time = minutes - start_total
         return total_time
 
-    def cost(self):
-        # $30 per hour/50 cents a min
-        total_time = self.total_minutes_elapsed()
-        cost = total_time * .5
-        return cost
-        # cost in $$$
-
     # total time played for file using stop property
     def time_played(self):
         stop_string = str(self.stop)
@@ -50,16 +46,27 @@ class Table():
         start_total = start_hours + start_minutes
 
         time_played = stop_total - start_total
-        return time_played
+        
+        if time_played > 60:
+            hours = math.floor(time_played / 60)
+            minutes = time_played% 60
+            return f"{hours} hours and {minutes} minutes."
+        else:
+            return f"{time_played} minutes."
+
+    # cost in dollars
+    def cost(self):
+        total_time = self.total_minutes_elapsed()
+        cost = total_time * rates_name.rate - rates_name.coupon
+        return f"${cost}"
 
 class Room():
     def __init__(self):
         self.tables = []
 
-    # fills tables array with 12 numbered tables
-    def create_room(self):
-        # MAKE IT SO THE STOP OF THIS RANGE IS SET WHEN THE ROOM IS INSTANTIATED
-        for i in range(0, 13):
+    # fills tables array with numbered tables
+    def create_room(self, range_stop):
+        for i in range(0, range_stop):
             name = i + 1
             name = Table()
             self.tables.append(name)
@@ -83,10 +90,9 @@ class Room():
             total_time = room_name.tables[index].total_minutes_elapsed()
             # (hardmode: if >60, show in hours)
             if total_time > 60:
-                total_time /= 60
-                # NO FLOAT - HOURS AND MINUTES?
-                # update file print when this gets figured out ^
-                print(f"Total Time: {total_time} hours.")
+                hours = math.floor(total_time / 60)
+                minutes = total_time % 60
+                print(f"Total Time: {hours} hours and {minutes} minutes.")
             else:
                 print(f"Total Time: {total_time} minutes.")
         else:
@@ -94,8 +100,34 @@ class Room():
             now = datetime.now()
             time = now.strftime("%H:%M:%S")
             self.tables[index].start = time
-        
 
+# allows the admin to set different rates and apply coupons           
+class Rates():
+    def __init__(self):
+        self.rate = .5
+        self.coupon = 0
+
+    def set_rate(self):
+        # resets back to default when called
+        self.rate = .5
+        self. coupon = 0
+        # different rates
+        print("Default rate is $30/hr. Set a different rate? Y/N")
+        conditional_response = input("> ")
+
+        if conditional_response == "Y":
+            response = input("What is the rate per hour for this player? ")
+            self.rate = float(response) / 60     
+        elif conditional_response == "N":
+            self.rate = .5
+        # coupons
+        print("Does the player have any coupons? Y/N")
+        coupon_exist = input("> ")
+
+        if coupon_exist == "Y":
+            self.coupon = int(input("Please enter the number of free minutes the player received: "))
+
+# create a formatted file entry for a table
 def table_entry(index):
     if room_name.tables[index].occupied == True:
         table_number = index + 1
@@ -107,7 +139,7 @@ def table_entry(index):
             Table {table_number}
             Start Time - {room_name.tables[index].start}
             End Time - {room_name.tables[index].stop}
-            Total Time Played - {time_played} minutes
+            Total Time Played - {time_played}
             Cost - {cost}
             ___________________________________________"""
     else:
@@ -121,8 +153,8 @@ def table_entry(index):
 
     return entry
 
+# creates a file name in the following format: (11-22-2017.txt or 11-22-2017.json)
 def file_name():
-    # The file should be named in the following format: (11-22-2017.txt or 11-22-2017.json)
     now = datetime.now()
     month = now.strftime("%m")
     day = now.strftime("%d")
@@ -130,29 +162,41 @@ def file_name():
     file_name = f"{month}-{day}-{year}.txt"
     return file_name
 
+# writes a file to a file_name() with a table_entry() for every table
 def file_write():
     this_file_name = file_name()
     with open(this_file_name, 'w') as new_file: 
         for i in range(0, len(room_name.tables)):
-            entry = table_entry(i)
+            entry = table_entry(i, )
             new_file.write(entry)
-    new_file.close()
 
+# calls all the functions needed when a table is closed out
 def closeout(index):
-    # assign stop to table
+    # assigns stop times to table being closed out
     now = datetime.now()
     time = now.strftime("%H:%M:%S")
     room_name.tables[index].stop = time
+    # prompts the admin to set rates and coupons for this player
+    rates_name.set_rate()
     # write file
     file_write()
-    # return formatted cost
-    print(room_name.tables[index].cost())
+    # print formatted cost for admin to tell player
+    print(f"Player total: {room_name.tables[index].cost()}")
 
+# instantiate a room
 UH = Room()
-UH.create_room()
+# instantiate tables, passing the end of the range, so it can apply to any pool room
+UH.create_room(13)
+# setting instatiation name for Room class to variable name so the code doesn't change from pool room to pool room, and theoretically could run multiple at once
 room_name = UH
+# instantiate rates object
+UH_rates = Rates()
+# setting instatiation name for Rates class to variable name so the code doesn't change from pool room to pool room, and theoretically could run multiple at once
+rates_name = UH_rates
+# menu condition - does this need to be a global variable?
 running = True
 
+#menu
 while running == True:
     print("""
         Press 1 to View All Tables. 
