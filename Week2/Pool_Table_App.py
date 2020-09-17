@@ -1,10 +1,17 @@
 # a pool table management app which will manage the pool tables in University of Houston Center Games Room - one user, the admin. 
-# To do:
-    # Write to JSON
-    # input validation
 
 from datetime import datetime, date, time
 import math
+import json
+
+def is_number(input_num):
+    try:
+        input_num = float(input_num)
+        return True
+    except ValueError:
+        print("Whoops! That is not a valid number.")
+
+# is string()
 
 class Table():
     def __init__(self):
@@ -56,7 +63,10 @@ class Table():
     # cost in dollars
     def cost(self):
         total_time = self.total_minutes_elapsed()
-        cost = total_time * rates_name.rate - rates_name.coupon
+        if rates_name.coupon > 0:
+            cost = total_time * rates_name.rate - rates_name.coupon
+        else:
+            cost = total_time * rates_name.rate - rates_name.coupon
         return f"${cost}"
 
 class Room():
@@ -116,39 +126,78 @@ class Rates():
 
         if conditional_response == "Y":
             response = input("What is the rate per hour for this player? ")
-            self.rate = float(response) / 60     
+            if is_number(response):
+                self.rate = float(response) / 60
+            else:
+                print("Rates not changed.")    
         elif conditional_response == "N":
             self.rate = .5
+            print("Rate is $30/hr.")
+        else:
+            print("Please enter Y or N. Rates have not changed.")
         # coupons
         print("Does the player have any coupons? Y/N")
         coupon_exist = input("> ")
 
         if coupon_exist == "Y":
-            self.coupon = int(input("Please enter the number of free minutes the player received: "))
+            coupon_rate = input("Please enter the number of free minutes the player received: ")
+            if is_number(coupon_rate):
+                self.coupon = int(coupon_rate)
+            else:
+                print("Coupon not added.")
+        if coupon_exist == "N":
+            print("Confirmed no coupon.")
+        else:
+            print("Please enter Y or N. Coupon not added.")
 
-# create a formatted file entry for a table
+# creates a formatted file entry for a table for a txt file
+# def table_entry(index):
+    # if room_name.tables[index].occupied == True:
+    #     table_number = index + 1
+    #     time_played = room_name.tables[index].time_played()
+    #     cost = room_name.tables[index].cost()
+    
+    #     entry = f"""
+    #         _________________________________________
+    #         Table {table_number}
+    #         Start Time - {room_name.tables[index].start}
+    #         End Time - {room_name.tables[index].stop}
+    #         Total Time Played - {time_played}
+    #         Cost - {cost}
+    #         ___________________________________________"""
+    # else:
+    #     table_number = index + 1
+        
+    #     entry = f"""
+    #         _________________________________________
+    #         Table {table_number}
+    #         Unoccupied
+    #         ___________________________________________"""
+
+    # return entry
+
+# creates a formatted file entry for a table for a json file
 def table_entry(index):
     if room_name.tables[index].occupied == True:
         table_number = index + 1
+        start_time = room_name.tables[index].start
+        end_time = room_name.tables[index].stop
         time_played = room_name.tables[index].time_played()
         cost = room_name.tables[index].cost()
-    
-        entry = f"""
-            _________________________________________
-            Table {table_number}
-            Start Time - {room_name.tables[index].start}
-            End Time - {room_name.tables[index].stop}
-            Total Time Played - {time_played}
-            Cost - {cost}
-            ___________________________________________"""
+
+        entry = {
+            "Table": table_number,
+            "Occupied": "yes",
+            "Start Time": start_time,
+            "End Time": end_time,
+            "Total Time Played": time_played,
+            "Cost": cost}
     else:
         table_number = index + 1
-        
-        entry = f"""
-            _________________________________________
-            Table {table_number}
-            Unoccupied
-            ___________________________________________"""
+        entry = {
+            "Table": table_number,
+            "Occupied": "no"
+        }
 
     return entry
 
@@ -158,16 +207,20 @@ def file_name():
     month = now.strftime("%m")
     day = now.strftime("%d")
     year = now.strftime("%Y")
-    file_name = f"{month}-{day}-{year}.txt"
+    file_name = f"{month}-{day}-{year}.json"
     return file_name
 
 # writes a file to a file_name() with a table_entry() for every table
 def file_write():
     this_file_name = file_name()
+    
+    entries = []
+    for i in range(0, len(room_name.tables)):
+            entry = table_entry(i)
+            entries.append(entry)
+
     with open(this_file_name, 'w') as new_file: 
-        for i in range(0, len(room_name.tables)):
-            entry = table_entry(i, )
-            new_file.write(entry)
+        json.dump(entries, new_file)
 
 # calls all the functions needed when a table is closed out
 def closeout(index):
@@ -192,11 +245,9 @@ room_name = UH
 UH_rates = Rates()
 # setting instatiation name for Rates class to variable name so the code doesn't change from pool room to pool room, and theoretically could run multiple at once
 rates_name = UH_rates
-# menu condition - does this need to be a global variable?
-running = True
 
 #menu
-while running == True:
+while True:
     print("""
         Press 1 to View All Tables. 
         Press 2 to Assign a Table.
@@ -210,17 +261,25 @@ while running == True:
 
     elif menu_select == "2":
         table_input = input("Which table would you like to assign? ")
-        index = int(table_input) - 1
-        room_name.table_assign(index)
+        if is_number(table_input):
+            index = int(table_input) - 1
+            if index < len(room_name.tables):
+                room_name.table_assign(index)
+            else:
+                print("Not a valid table number.")
 
     elif menu_select == "3":
         closeout_input = input("Which table would you like to closeout? ")
-        index = int(closeout_input) - 1
-        closeout(index)
-        
+        if is_number(table_input):
+            index = int(closeout_input) - 1
+            if index < len(room_name.tables):
+                closeout(index)
+            else:
+                print("Not a valid table number.")
+
     elif menu_select == "Q" or menu_select == "q":
         print("Goodbye.")
-        running = False
+        break
 
     else:
         print("Please enter 1, 2, 3, or Q/q.")
