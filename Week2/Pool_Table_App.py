@@ -11,8 +11,6 @@ def is_number(input_num):
     except ValueError:
         print("Whoops! That is not a valid number.")
 
-# is string()
-
 class Table():
     def __init__(self):
         self.occupied = False
